@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- For using launchd to run a daemon under OS X. -->
-<!-- https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html -->
+<!-- 
+For using launchd to run a daemon under OS X.
+https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html 
+Setup:
+Edit the program location line to reflect the correct location of the update script
+cd ~/Library/LaunchAgents
+launchctl load com.codemelon.optbot.dailyupdate.plist
+To verify that process is running:
+launchctl list | grep optbot
+To stop process:
+launchctl unload com.codemelon.optbot.dailyupdate.plist
+-->
 <plist version="1.0">
 <dict>
 	<key>Label</key>
     <string>com.codemelon.optbot.dailyupdate</string>
     <key>ProgramArguments</key>
     <array>
-        <string>echo</string>
-        <string>working</string>
+        <!-- Edit the following entry appropriately: -->
+        <string>/Users/marshallfarrier/Workspace/optbot/db/dailyupdate.py</string>
     </array>
     <key>StandardOutPath</key>
-    <string>/var/log/optbot/dailyupdate.log</string>
+    <string>/var/log/optbot/launchd.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/optbot/dailyupdate.log</string>
-    <key>StartInterval</key>
-    <integer>15</integer>
+    <string>/var/log/optbot/launchd.log</string>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>14</integer>
+            <key>Minute</key>
+            <integer>30</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>17</integer>
+        </dict>
+    </array>
 </dict>
 </plist>

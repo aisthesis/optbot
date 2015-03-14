@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 """
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
@@ -26,8 +27,14 @@ so you have to do:
 The resulting message is suggestive of errors, but the shutdown
 appears clean.
 """
+import logging
+logger = logging.getLogger('optbot')
+handler = logging.FileHandler('/var/log/optbot/dailyupdate.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
-from __future__ import print_function
 import datetime as dt
 
 import pandas as pd
@@ -52,16 +59,16 @@ def updateeq(db, eq, closingtime):
     _quotes = db[QUOTES]
     _today = dt.datetime(closingtime.year, closingtime.month, closingtime.day, 11)
     if _quotes.find_one({'Underlying': {'$in': [eq.lower(), eq.upper()]}, 'Quote_Time': {'$gte': _today}}) is not None:
-        print("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
+        logger.warn("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
         return
-    print("Downloading options quotes for '{}'".format(eq))
+    logger.info("Downloading options quotes for '{}'".format(eq))
     try:
         _opts = pn.opt.get(eq)
-        print("Inserting quotes for '{}' into '{}'".format(eq, QUOTES))
+        logger.info("Inserting quotes for '{}' into '{}'".format(eq, QUOTES))
         _quotes.insert_many(_opts.tolist())
     except pd.io.data.RemoteDataError as e:
-        print("exception retrieving quotes for '{}'".format(eq))
-        print(e)
+        logger.error("exception retrieving quotes for '{}'".format(eq))
+        logger.error(e)
 
 def updateall(client, closingtime):
     _db = client[DB]
@@ -71,18 +78,17 @@ def updateall(client, closingtime):
 
 def connection(fn, closingtime):
     _client = MongoClient()
-    print("db connection opened")
+    logger.info("db connection opened")
     fn(_client, closingtime)
     _client.close()
-    print("db connection closed")
+    logger.info("db connection closed")
 
-if __name__ == "__main__":
-    _now = dt.datetime.now()
-    _todaysclose = mktclose(_now)
-    if not ismktopen(_todaysclose):
-        print("Market closed today. Aborting update.")
-        exit(0)
-    if _now.hour < 16:
-        print("Today's closes not yet available. Aborting update.")
-        exit(0)
-    connection(updateall, _todaysclose)
+_now = dt.datetime.now()
+_todaysclose = mktclose(_now)
+if not ismktopen(_todaysclose):
+    logger.info("Market closed today. No update possible.")
+    exit(0)
+if _now.hour < 16:
+    logger.info("Today's closes not yet available. No update possible.")
+    exit(0)
+connection(updateall, _todaysclose)
