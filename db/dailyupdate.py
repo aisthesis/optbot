@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 """
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
