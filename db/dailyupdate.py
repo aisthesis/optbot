@@ -49,7 +49,8 @@ import _constants
 import conn
 
 def mktclose(date):
-    return dt.datetime(date.year, date.month, date.day, 16)
+    # UTC is 4 hours later than EST with no DST adjustment
+    return dt.datetime(date.year, date.month, date.day, 21)
 
 def ismktopen(date):
     return date.day == ((date + BDay()) - BDay()).day
@@ -82,12 +83,12 @@ def connection(fn, closingtime):
     _client.close()
     logger.info("db connection closed")
 
-_now = dt.datetime.now()
+_now = dt.datetime.utcnow()
 _todaysclose = mktclose(_now)
 if not ismktopen(_todaysclose):
     logger.info("Market closed today. No update")
     exit(0)
-if _now.hour < 16:
+if _now.hour < 21:
     logger.info("Today's closes not yet available. No update")
     exit(0)
 conn.job(partial(updateall, _todaysclose), logger)

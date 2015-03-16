@@ -1,0 +1,2 @@
+15 21 * * * /home/ubuntu/Workspace/optbot/db/dailyupdate.py
+* 23 * * * /home/ubuntu/Workspace/optbot/db/dailyupdate.py
