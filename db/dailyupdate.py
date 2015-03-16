@@ -49,8 +49,7 @@ import pynance as pn
 import conn
 
 def mktclose(date):
-    # UTC is 4 hours later than EST with no DST adjustment
-    return dt.datetime(date.year, date.month, date.day, 21)
+    return dt.datetime(date.year, date.month, date.day, _constants.TODAYSCLOSE)
 
 def ismktopen(date):
     return date.day == ((date + BDay()) - BDay()).day
@@ -91,7 +90,7 @@ _todaysclose = mktclose(_now)
 if not ismktopen(_todaysclose):
     logger.info("Market closed today. No update")
     exit(0)
-if _now.hour < 21:
+if _now.hour < _constants.TODAYSCLOSE:
     logger.info("Today's closes not yet available. No update")
     exit(0)
 conn.job(partial(updateall, _todaysclose, 0), logger)

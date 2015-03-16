@@ -11,7 +11,7 @@ Constants
 """
 # logging
 LOGNAME = 'optbot'
-LOGFILE = '/mnt/my-data/log/optbot/python.log'
+LOGFILE = '/var/log/optbot/python.log'
 LOGFMT = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
 
 # database
@@ -23,3 +23,6 @@ QUOTES = 'quotes'
 # retries for update
 NRETRIES = 16
 RETRYSECSTOSLEEP = 10 * 60
+
+# timestamps in local time
+TODAYSCLOSE = 13
