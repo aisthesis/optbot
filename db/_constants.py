@@ -19,3 +19,7 @@ DB = 'options'
 # collections
 ACTIVE = 'active'
 QUOTES = 'quotes'
+
+# retries for update
+NRETRIES = 16
+RETRYSECSTOSLEEP = 10 * 60

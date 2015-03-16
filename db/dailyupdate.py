@@ -38,6 +38,7 @@ logger.setLevel(logging.INFO)
 
 import datetime as dt
 from functools import partial
+import time
 
 import pandas as pd
 from pandas.tseries.offsets import BDay
@@ -65,22 +66,25 @@ def updateeq(db, eq, closingtime):
         _opts = pn.opt.get(eq)
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
         _quotes.insert_many(_opts.tolist())
+        return True
     except pd.io.data.RemoteDataError as e:
         logger.error("exception retrieving quotes for '{}'".format(eq))
         logger.error(e)
+        return False
 
-def updateall(closingtime, client):
+def updateall(closingtime, tries, client):
+    logger.info("Attempt {} of {}".format(tries + 1, _constants.NRETRIES))
     _db = client[_constants.DB]
     _active = _db[_constants.ACTIVE]
+    _success = True
     for _eq in _active.find():
-        updateeq(_db, _eq['equity'], closingtime)
-
-def connection(fn, closingtime):
-    _client = MongoClient()
-    logger.info("db connection opened")
-    fn(_client, closingtime)
-    _client.close()
-    logger.info("db connection closed")
+        _success = updateeq(_db, _eq['equity'], closingtime) and _success
+    if tries  + 1 >= _constants.NRETRIES:
+        return
+    if not _success:
+        # sleep, then try again
+        time.sleep(_constants.RETRYSECSTOSLEEP)
+        updateall(closingtime, tries + 1, client)
 
 _now = dt.datetime.utcnow()
 _todaysclose = mktclose(_now)
@@ -90,4 +94,4 @@ if not ismktopen(_todaysclose):
 if _now.hour < 21:
     logger.info("Today's closes not yet available. No update")
     exit(0)
-conn.job(partial(updateall, _todaysclose), logger)
+conn.job(partial(updateall, _todaysclose, 0), logger)
