@@ -1,31 +1,19 @@
-#!/usr/bin/python3
 """
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 
-Daily update (:mod:`optbot.db.dailyupdate`)
-===========================================
+Observe equity (:mod:`optbot.db.observe`)
+=========================================
 
-.. currentmodule:: optbot.db.dailyupdate
+.. currentmodule:: optbot.db.observe
 
-Run daily to to save options quotes.
+Add equities passed from command line to `active` collection in mongodb.
 
-After creating directory /var/log/mongodb with `user` permissions, 
-start mongodb as daemon using:
+Examples
+--------
+To add 'ge' and 'f' to `active` collection:
 
-    $ mongod --fork --logpath /var/log/mongodb/db.log
-
-Stop db using (on Linux):
-
-    $ mongod --shutdown
-    
-The `shutdown` option is for some reason unavailable on OSX,
-so you have to do:
-
-    mongo admin --eval "db.shutdownServer()"
-
-The resulting message is suggestive of errors, but the shutdown
-appears clean.
+    python3 observe.py ge f
 """
 import logging
 logger = logging.getLogger('optbot')
@@ -36,17 +24,10 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-import datetime as dt
-from functools import partial
-
-import pandas as pd
-from pandas.tseries.offsets import BDay
-import pymongo
-from pymongo import MongoClient
-import pynance as pn
+import sys
 
 import _constants
-import conn
+import connection
 
 def mktclose(date):
     return dt.datetime(date.year, date.month, date.day, 16)
@@ -55,7 +36,7 @@ def ismktopen(date):
     return date.day == ((date + BDay()) - BDay()).day
 
 def updateeq(db, eq, closingtime):
-    _quotes = db[_constants.QUOTES]
+    _quotes = db[QUOTES]
     _today = dt.datetime(closingtime.year, closingtime.month, closingtime.day, 11)
     if _quotes.find_one({'Underlying': {'$in': [eq.lower(), eq.upper()]}, 'Quote_Time': {'$gte': _today}}) is not None:
         logger.warn("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
@@ -63,15 +44,15 @@ def updateeq(db, eq, closingtime):
     logger.info("Downloading options quotes for '{}'".format(eq))
     try:
         _opts = pn.opt.get(eq)
-        logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
-        #_quotes.insert_many(_opts.tolist())
+        logger.info("Inserting quotes for '{}' into '{}'".format(eq, QUOTES))
+        _quotes.insert_many(_opts.tolist())
     except pd.io.data.RemoteDataError as e:
         logger.error("exception retrieving quotes for '{}'".format(eq))
         logger.error(e)
 
-def updateall(closingtime, client):
-    _db = client[_constants.DB]
-    _active = _db[_constants.ACTIVE]
+def updateall(client, closingtime):
+    _db = client[DB]
+    _active = _db[ACTIVE]
     for _eq in _active.find():
         updateeq(_db, _eq['equity'], closingtime)
 
@@ -82,12 +63,6 @@ def connection(fn, closingtime):
     _client.close()
     logger.info("db connection closed")
 
-_now = dt.datetime.now()
-_todaysclose = mktclose(_now)
-if not ismktopen(_todaysclose):
-    logger.info("Market closed today. No update possible.")
-    #exit(0)
-if _now.hour < 16:
-    logger.info("Today's closes not yet available. No update possible.")
-    #exit(0)
-conn.job(partial(updateall, _todaysclose), logger)
+if __name__ == '__main__':
+    equities = sys.argv[1:]
+    pass
