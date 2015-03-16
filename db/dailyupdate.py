@@ -64,7 +64,7 @@ def updateeq(db, eq, closingtime):
     try:
         _opts = pn.opt.get(eq)
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
-        #_quotes.insert_many(_opts.tolist())
+        _quotes.insert_many(_opts.tolist())
     except pd.io.data.RemoteDataError as e:
         logger.error("exception retrieving quotes for '{}'".format(eq))
         logger.error(e)
@@ -85,9 +85,9 @@ def connection(fn, closingtime):
 _now = dt.datetime.now()
 _todaysclose = mktclose(_now)
 if not ismktopen(_todaysclose):
-    logger.info("Market closed today. No update possible.")
-    #exit(0)
+    logger.info("Market closed today. No update")
+    exit(0)
 if _now.hour < 16:
-    logger.info("Today's closes not yet available. No update possible.")
-    #exit(0)
+    logger.info("Today's closes not yet available. No update")
+    exit(0)
 conn.job(partial(updateall, _todaysclose), logger)

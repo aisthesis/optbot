@@ -11,8 +11,6 @@ Opens and closes db connection.
 """
 from pymongo import MongoClient
 
-import _constants
-
 def job(fn, logger):
     _client = MongoClient()
     logger.info("db connection opened")

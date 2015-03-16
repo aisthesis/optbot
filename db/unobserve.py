@@ -2,18 +2,18 @@
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 
-Observe equity (:mod:`optbot.db.observe`)
+Unobserve equity (:mod:`optbot.db.unobserve`)
 =========================================
 
-.. currentmodule:: optbot.db.observe
+.. currentmodule:: optbot.db.unobserve
 
-Add equities passed from command line to `active` collection in mongodb.
+Remove equities passed from command line from `active` collection in mongodb.
 
 Examples
 --------
-To add 'ge' and 'f' to `active` collection:
+To remove 'ge' and 'f' from `active` collection:
 
-    python3 observe.py ge f
+    python3 unobserve.py ge f
 """
 import logging
 logger = logging.getLogger('optbot')
@@ -36,11 +36,11 @@ def insert(equities, client):
     _active = _db[_constants.ACTIVE]
     _values = [{'equity': _eq} for _eq in equities]
     for _val in _values:
-        if _active.find_one(_val) is not None:
-            logger.info("{} already present in db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+        if _active.find_one(_val) is None:
+            logger.info("{} not present in db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
         else:
-            _active.insert_one(_val)
-            logger.info("{} inserted into db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+            _active.delete_many(_val)
+            logger.info("{} removed from db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
 
 if __name__ == '__main__':
     conn.job(partial(insert, sys.argv[1:]), logger)
