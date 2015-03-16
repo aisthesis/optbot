@@ -9,6 +9,11 @@ Constants (:mod:`optbot.db._constants`)
 
 Constants
 """
+# logging
+LOGNAME = 'optbot'
+LOGFILE = '/mnt/my-data/log/optbot/python.log'
+LOGFMT = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
+
 # database
 DB = 'options'
 # collections

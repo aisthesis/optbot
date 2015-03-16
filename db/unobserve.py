@@ -15,11 +15,11 @@ To remove 'ge' and 'f' from `active` collection:
 
     python3 unobserve.py ge f
 """
+import _constants
 import logging
-logger = logging.getLogger('optbot')
-handler = logging.FileHandler('/var/log/optbot/python.log')
-_fmt = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
-formatter = logging.Formatter(_fmt)
+logger = logging.getLogger(_constants.LOGNAME)
+handler = logging.FileHandler(_constants.LOGFILE)
+formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)

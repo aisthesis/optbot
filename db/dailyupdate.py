@@ -27,11 +27,11 @@ so you have to do:
 The resulting message is suggestive of errors, but the shutdown
 appears clean.
 """
+import _constants
 import logging
-logger = logging.getLogger('optbot')
-handler = logging.FileHandler('/var/log/optbot/python.log')
-_fmt = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
-formatter = logging.Formatter(_fmt)
+logger = logging.getLogger(_constants.LOGNAME)
+handler = logging.FileHandler(_constants.LOGFILE)
+formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -45,7 +45,6 @@ import pymongo
 from pymongo import MongoClient
 import pynance as pn
 
-import _constants
 import conn
 
 def mktclose(date):

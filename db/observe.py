@@ -15,11 +15,11 @@ To add 'ge' and 'f' to `active` collection:
 
     python3 observe.py ge f
 """
+import _constants
 import logging
-logger = logging.getLogger('optbot')
-handler = logging.FileHandler('/var/log/optbot/python.log')
-_fmt = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
-formatter = logging.Formatter(_fmt)
+logger = logging.getLogger(_constants.LOGNAME)
+handler = logging.FileHandler(_constants.LOGFILE)
+formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -28,7 +28,6 @@ from functools import partial
 
 import sys
 
-import _constants
 import conn
 
 def insert(equities, client):
