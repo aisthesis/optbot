@@ -11,7 +11,7 @@ Constants
 """
 # logging
 LOGNAME = 'optbot'
-LOGFILE = '/var/log/optbot/python.log'
+LOGFILE = '/mnt/my-data/log/optbot/python.log'
 LOGFMT = '%(asctime)s %(levelname)s %(module)s.%(funcName)s :  %(message)s'
 
 # database
