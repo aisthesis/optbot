@@ -24,5 +24,5 @@ QUOTES = 'quotes'
 NRETRIES = 16
 RETRYSECSTOSLEEP = 10 * 60
 
-# timestamps in local time
-TODAYSCLOSE = 13
+# timestamps in UTC
+TODAYSCLOSE = 21

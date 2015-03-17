@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 """
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
@@ -91,6 +91,6 @@ if not ismktopen(_todaysclose):
     logger.info("Market closed today. No update")
     exit(0)
 if _now.hour < _constants.TODAYSCLOSE:
-    logger.info("Today's closes not yet available. No update")
+    logger.info("Closes unavailable at hour {}. No update".format(_now.hour))
     exit(0)
 conn.job(partial(updateall, _todaysclose, 0), logger)
