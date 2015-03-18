@@ -20,12 +20,10 @@ DB = 'options'
 ACTIVE = 'active'
 QUOTES = 'quotes'
 
-# retries for update
-NRETRIES = 16
-RETRYSECSTOSLEEP = 10 * 60
-
-# timestamps in UTC
-TODAYSCLOSE = 21
+# retry parameters
+RETRYSECS = 10. * 60.
+SECSONSUCC = 16. * 60. * 60.
+SECSINDAY = 24. * 60. * 60.
 
 # service management
 TOPIC = 'optbot'

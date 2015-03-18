@@ -24,61 +24,61 @@ logger.setLevel(logging.INFO)
 
 import datetime as dt
 from functools import partial
+from pytz import timezone
 import socket
 import threading
-from threading import Thread
-import time
+import traceback
 
 import pandas as pd
 from pandas.tseries.offsets import BDay
-import pymongo
-from pymongo import MongoClient
 import pynance as pn
 
 import conn
 
-class QuoteChecker(Thread):
-    def __init__(self):
-        super().__init__()
-        self._running = False
-
-    def run(self):
-        self._running = True
-        while self._running:
-            logger.info("Running")
-            time.sleep(10)
-        logger.info("closing quote checker")
-
-    def close(self):
-        self._running = False
-
 class Checker(object):
     def __init__(self):
         self._job = None
+        self._secstoretry = _constants.RETRYSECS
+        self._running = False
 
     def run(self):
-        logger.info("running")
-        self._job = threading.Timer(2., self.run)
-        self._job.start()
+        _now = dt.datetime.now(tz=timezone('US/Eastern'))
+        if not ismktopen(_now):
+            logger.info("Market not open today: {}".format(_now))
+            self._secstoretry = _constants.SECSINDAY
+        elif _now.hour < 16:
+            logger.info("Today's closes unavailable at {}".format(_now))
+            self._secstoretry = (16. - _now.hour) * 60. * 60.
+        elif conn.job(partial(updateall, _now), logger):
+            logger.info("Successful retrieval at {}".format(_now))
+            self._secstoretry = _constants.SECSONSUCC
+        else:
+            logger.info("Retrieval failed at {}".format(_now))
+            self._secstoretry = _constants.RETRYSECS
+        if self._running:
+            logger.info("Retrying in {:.1f} hours".format(self._secstoretry / (60. * 60.)))
+            self._job = threading.Timer(self._secstoretry, self.run)
+            self._job.start()
 
     def start(self):
         logger.info("starting")
+        self._running = True
         self.run()
 
     def close(self):
         logger.info("stopping")
+        self._running = False
         self._job.cancel()
-
-
-def mktclose(date):
-    return dt.datetime(date.year, date.month, date.day, _constants.TODAYSCLOSE)
 
 def ismktopen(date):
     return date.day == ((date + BDay()) - BDay()).day
 
-def updateeq(db, eq, closingtime):
+def _tst():
+    return False
+
+def updateeq(db, eq, nysenow):
     _quotes = db[_constants.QUOTES]
-    _today = dt.datetime(closingtime.year, closingtime.month, closingtime.day, 11)
+    _today = dt.datetime(nysenow.year, nysenow.month, nysenow.day, 11)
     if _quotes.find_one({'Underlying': {'$in': [eq.lower(), eq.upper()]}, 'Quote_Time': {'$gte': _today}}) is not None:
         logger.warn("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
         return
@@ -88,35 +88,17 @@ def updateeq(db, eq, closingtime):
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
         _quotes.insert_many(_opts.tolist())
         return True
-    except pd.io.data.RemoteDataError as e:
-        logger.error("exception retrieving quotes for '{}'".format(eq))
-        logger.error(e)
+    except pd.io.data.RemoteDataError:
+        logger.exception("exception retrieving quotes for '{}'".format(eq))
         return False
 
-def updateall(closingtime, tries, client):
-    logger.info("Attempt {} of {}".format(tries + 1, _constants.NRETRIES))
+def updateall(nysenow, client):
     _db = client[_constants.DB]
     _active = _db[_constants.ACTIVE]
     _success = True
     for _eq in _active.find():
-        _success = updateeq(_db, _eq['equity'], closingtime) and _success
-    if tries  + 1 >= _constants.NRETRIES:
-        return
-    if not _success:
-        # sleep, then try again
-        time.sleep(_constants.RETRYSECSTOSLEEP)
-        updateall(closingtime, tries + 1, client)
-
-def job():
-    _now = dt.datetime.utcnow()
-    _todaysclose = mktclose(_now)
-    if not ismktopen(_todaysclose):
-        logger.info("Market closed today. No update")
-        exit(0)
-    if _now.hour < _constants.TODAYSCLOSE:
-        logger.info("Closes unavailable at hour {}. No update".format(_now.hour))
-        #exit(0)
-    conn.job(partial(updateall, _todaysclose, 0), logger)
+        _success = updateeq(_db, _eq['equity'], nysenow) and _success
+    return _success
 
 def server():
     _host = ''
@@ -135,7 +117,7 @@ def server():
             _sock.close()
             _checker.close()
             _running = False
-            _client.send('quote server closed'.encode())
+            _client.send('quote server closing'.encode())
 
 if __name__ == '__main__':
     server()

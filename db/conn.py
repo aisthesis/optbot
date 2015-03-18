@@ -14,6 +14,7 @@ from pymongo import MongoClient
 def job(fn, logger):
     _client = MongoClient()
     logger.info("db connection opened")
-    fn(_client)
+    _ret = fn(_client)
     _client.close()
     logger.info("db connection closed")
+    return _ret
