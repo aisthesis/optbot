@@ -26,3 +26,9 @@ RETRYSECSTOSLEEP = 10 * 60
 
 # timestamps in UTC
 TODAYSCLOSE = 21
+
+# service management
+TOPIC = 'optbot'
+KILLSIG = TOPIC + '.kill'
+PORT = 50000
+MSGSIZE = 64
