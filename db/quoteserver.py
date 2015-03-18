@@ -7,7 +7,11 @@ Get options quotes (:mod:`optbot.db.quoteserver`)
 
 .. currentmodule:: optbot.db.quoteserver
 
-Run as background thread.
+Run as background thread (append '&' to command)
+
+Examples
+--------
+    python3 quoteserver.py &
 """
 import _constants
 import logging
@@ -21,6 +25,8 @@ logger.setLevel(logging.INFO)
 import datetime as dt
 from functools import partial
 import socket
+import threading
+from threading import Thread
 import time
 
 import pandas as pd
@@ -30,6 +36,39 @@ from pymongo import MongoClient
 import pynance as pn
 
 import conn
+
+class QuoteChecker(Thread):
+    def __init__(self):
+        super().__init__()
+        self._running = False
+
+    def run(self):
+        self._running = True
+        while self._running:
+            logger.info("Running")
+            time.sleep(10)
+        logger.info("closing quote checker")
+
+    def close(self):
+        self._running = False
+
+class Checker(object):
+    def __init__(self):
+        self._job = None
+
+    def run(self):
+        logger.info("running")
+        self._job = threading.Timer(2., self.run)
+        self._job.start()
+
+    def start(self):
+        logger.info("starting")
+        self.run()
+
+    def close(self):
+        logger.info("stopping")
+        self._job.cancel()
+
 
 def mktclose(date):
     return dt.datetime(date.year, date.month, date.day, _constants.TODAYSCLOSE)
@@ -68,7 +107,7 @@ def updateall(closingtime, tries, client):
         time.sleep(_constants.RETRYSECSTOSLEEP)
         updateall(closingtime, tries + 1, client)
 
-def run():
+def job():
     _now = dt.datetime.utcnow()
     _todaysclose = mktclose(_now)
     if not ismktopen(_todaysclose):
@@ -79,27 +118,24 @@ def run():
         #exit(0)
     conn.job(partial(updateall, _todaysclose, 0), logger)
 
-def die():
-    print('dying')
-
-def test():
-    while not _DIE:
-        print('running')
-        time.sleep(10)
-    print('done')
-
-if __name__ == '__main__':
+def server():
     _host = ''
     _backlog = 1
     _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     _sock.bind((_host, _constants.PORT))
     _sock.listen(_backlog)
     _running = True
+    _checker = Checker()
+    _checker.start()
     while _running:
         _client, _address = _sock.accept()
         _msg = _client.recv(_constants.MSGSIZE).decode()
         if _msg == _constants.KILLSIG:
             _sock.shutdown(socket.SHUT_RDWR)
             _sock.close()
+            _checker.close()
             _running = False
             _client.send('quote server closed'.encode())
+
+if __name__ == '__main__':
+    server()
