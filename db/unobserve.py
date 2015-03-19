@@ -16,9 +16,11 @@ To remove 'ge' and 'f' from `active` collection:
     python3 unobserve.py ge f
 """
 import _constants
+import _locconst
+
 import logging
 logger = logging.getLogger(_constants.LOGNAME)
-handler = logging.FileHandler(_constants.LOGFILE)
+handler = logging.FileHandler(_locconst.LOGFILE)
 formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -28,7 +30,6 @@ from functools import partial
 
 import sys
 
-import _constants
 import conn
 
 def insert(equities, client):

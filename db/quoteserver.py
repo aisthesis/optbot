@@ -14,9 +14,11 @@ Examples
     python3 quoteserver.py &
 """
 import _constants
+import _locconst
+
 import logging
 logger = logging.getLogger(_constants.LOGNAME)
-handler = logging.FileHandler(_constants.LOGFILE)
+handler = logging.FileHandler(_locconst.LOGFILE)
 formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -118,7 +120,7 @@ def server():
     _host = ''
     _backlog = 1
     _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    _sock.bind((_host, _constants.PORT))
+    _sock.bind((_host, _locconst.PORT))
     _sock.listen(_backlog)
     _running = True
     _checker = Checker()

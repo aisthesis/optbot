@@ -16,9 +16,11 @@ To add 'ge' and 'f' to `active` collection:
     python3 observe.py ge f
 """
 import _constants
+import _locconst
+
 import logging
 logger = logging.getLogger(_constants.LOGNAME)
-handler = logging.FileHandler(_constants.LOGFILE)
+handler = logging.FileHandler(_locconst.LOGFILE)
 formatter = logging.Formatter(_constants.LOGFMT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
