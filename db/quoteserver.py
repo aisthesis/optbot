@@ -85,11 +85,25 @@ def updateeq(db, eq, nysenow):
     logger.info("Downloading options quotes for '{}'".format(eq))
     try:
         _opts = pn.opt.get(eq)
+        _entries = _opts.tolist()
+        _insertion_result = None
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
-        _quotes.insert_many(_opts.tolist())
+        for _entry in _entries:
+            try:
+                _insertion_result = _quotes.insert_one(_entry)
+            except:
+                logger.exception("Exception inserting into '{}': {}".format(_constants.QUOTES, _entry))
+                return False
+            else:
+                if not _insertion_result:
+                    logger.error("Could not insert into '{}': {}".format(_constants.QUOTES, _entry))
+                    return False
         return True
     except pd.io.data.RemoteDataError:
         logger.exception("exception retrieving quotes for '{}'".format(eq))
+        return False
+    except:
+        logger.exception("unknown exception")
         return False
 
 def updateall(nysenow, client):
