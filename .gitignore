@@ -1,2 +1,5 @@
 *.pyc
 *.swp
+
+# to allow local configuration run:
+# $ git update-index --assume-unchanged db/_locconst.py
