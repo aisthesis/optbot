@@ -2,6 +2,7 @@
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 """
+from __future__ import print_function
 
 import pynance as pn
 
@@ -22,5 +23,11 @@ def summarize():
     _dblcal.loc['Profit', 'Value'] = _profit = _currval - _cost
     _dblcal.loc['ProfitPerShare', 'Value'] = _profit / _nshares
     _dblcal.loc['ProfitPct', 'Value'] = _profit / _cost
+    _dblcal.loc['Put Strike', 'Value'] = _lowstrike
+    _dblcal.loc['Call Strike', 'Value'] = _highstrike
+    _dblcal.loc['Expiry 1', 'Value'] = _exp1
+    _dblcal.loc['Expiry 2', 'Value'] = _exp2
     return _dblcal
 
+if __name__ == '__main__':
+    print(summarize())
