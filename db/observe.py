@@ -38,10 +38,10 @@ def insert(equities, client):
     _values = [{'equity': _eq} for _eq in equities]
     for _val in _values:
         if _active.find_one(_val) is not None:
-            logger.info("{} already present in db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+            logger.info("{} already present in {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
         else:
             _active.insert_one(_val)
-            logger.info("{} inserted into db {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+            logger.info("{} inserted into {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
 
 if __name__ == '__main__':
     conn.job(partial(insert, sys.argv[1:]), logger)
