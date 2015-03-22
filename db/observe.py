@@ -13,7 +13,7 @@ Examples
 --------
 To add 'ge' and 'f' to `active` collection:
 
-    python3 observe.py ge f
+    python observe.py ge f
 """
 import _constants
 import _locconst
@@ -27,21 +27,28 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 from functools import partial
-
 import sys
+
+from pymongo.errors import BulkWriteError
 
 import conn
 
 def insert(equities, client):
     _db = client[_constants.DB]
     _active = _db[_constants.ACTIVE]
+    _bulk = _active.initialize_unordered_bulk_op()
     _values = [{'equity': _eq} for _eq in equities]
     for _val in _values:
         if _active.find_one(_val) is not None:
             logger.info("{} already present in {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
         else:
-            _active.insert_one(_val)
-            logger.info("{} inserted into {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+            _bulk.insert(_val)
+            logger.info("{} queued for insert into {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
+    try:
+        _bulk.execute()
+    except BulkWriteError:
+        logger.exception("Error writing to database")
+
 
 if __name__ == '__main__':
     conn.job(partial(insert, sys.argv[1:]), logger)
