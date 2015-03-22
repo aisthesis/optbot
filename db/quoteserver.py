@@ -24,6 +24,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
+import argparse
 import datetime as dt
 from functools import partial
 from pytz import timezone
@@ -38,6 +39,8 @@ import pynance as pn
 
 import conn
 
+run_any_day = False
+
 class Checker(object):
     def __init__(self):
         self._job = None
@@ -46,10 +49,11 @@ class Checker(object):
 
     def run(self):
         _now = dt.datetime.now(tz=timezone('US/Eastern'))
-        if not ismktopen(_now):
+        _mktday = ismktopen(_now)
+        if not _mktday and not run_any_day:
             logger.info("Market not open today: {}".format(_now))
             self._secstoretry = _constants.SECSINDAY
-        elif _now.hour < 16:
+        elif _now.hour < 16 and _mktday:
             logger.info("Today's closes unavailable at {}".format(_now))
             self._secstoretry = (16. - _now.hour) * 60. * 60.
         elif conn.job(partial(updateall, _now), logger):
@@ -137,4 +141,11 @@ def server():
             _client.send('quote server closing'.encode())
 
 if __name__ == '__main__':
+    _parser = argparse.ArgumentParser()
+    _parser.add_argument("-A", "--alwaysrun", help="insert quotes on weekends and holidays",
+            action="store_true")
+    _args = _parser.parse_args()
+    run_any_day = _args.alwaysrun
+    if _args.alwaysrun:
+        logger.info("Inserting quotes even on weekends and holidays")
     server()
