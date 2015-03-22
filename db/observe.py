@@ -38,16 +38,23 @@ def insert(equities, client):
     _active = _db[_constants.ACTIVE]
     _bulk = _active.initialize_unordered_bulk_op()
     _values = [{'equity': _eq} for _eq in equities]
+    _alreadydone = True
     for _val in _values:
         if _active.find_one(_val) is not None:
             logger.info("{} already present in {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
         else:
+            _alreadydone = False
             _bulk.insert(_val)
             logger.info("{} queued for insert into {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
-    try:
-        _bulk.execute()
-    except BulkWriteError:
-        logger.exception("Error writing to database")
+    if not _alreadydone:
+        try:
+            _result = _bulk.execute()
+        except BulkWriteError:
+            logger.exception("Error writing to database")
+        else:
+            logger.info("{} records inserted into {}.{}".format(_result['nInserted'], _constants.DB, _constants.ACTIVE))
+    else:
+        logger.info("all values already present")
 
 
 if __name__ == '__main__':
