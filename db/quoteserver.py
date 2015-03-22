@@ -11,7 +11,7 @@ Run as background thread (append '&' to command)
 
 Examples
 --------
-    python3 quoteserver.py &
+    python quoteserver.py &
 """
 import _constants
 import _locconst
@@ -33,6 +33,7 @@ import traceback
 
 import pandas as pd
 from pandas.tseries.offsets import BDay
+from pymongo.errors import BulkWriteError
 import pynance as pn
 
 import conn
@@ -75,9 +76,6 @@ class Checker(object):
 def ismktopen(date):
     return date.day == ((date + BDay()) - BDay()).day
 
-def _tst():
-    return False
-
 def updateeq(db, eq, nysenow):
     _quotes = db[_constants.QUOTES]
     _today = dt.datetime(nysenow.year, nysenow.month, nysenow.day, 11)
@@ -88,19 +86,22 @@ def updateeq(db, eq, nysenow):
     try:
         _opts = pn.opt.get(eq)
         _entries = _opts.tolist()
-        _insertion_result = None
+        if len(_entries) == 0:
+            logger.info("Empty list returned for '{}'".format(eq))
+            return False
+        _bulk = _quotes.initialize_unordered_bulk_op()
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
         for _entry in _entries:
-            try:
-                _insertion_result = _quotes.insert_one(_entry)
-            except:
-                logger.exception("Exception inserting into '{}': {}".format(_constants.QUOTES, _entry))
-                return False
-            else:
-                if not _insertion_result:
-                    logger.error("Could not insert into '{}': {}".format(_constants.QUOTES, _entry))
-                    return False
-        return True
+            _bulk.insert(_entry)
+            logger.info("{} queued for insert into {}.{}".format(_entry, _constants.DB, _constants.QUOTES))
+        try:
+            _result = _bulk.execute()
+        except BulkWriteError:
+            logger.exception("Error writing to database")
+            return False
+        else:
+            logger.info("{} records inserted into {}.{}".format(_result['nInserted'], _constants.DB, _constants.QUOTES))
+            return True
     except pd.io.data.RemoteDataError:
         logger.exception("exception retrieving quotes for '{}'".format(eq))
         return False
