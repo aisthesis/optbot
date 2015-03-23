@@ -6,6 +6,14 @@ Local constants (:mod:`optbot.db._locconst`)
 ============================================
 
 .. currentmodule:: optbot.db._locconst
+
+This file should constants that may vary depending on
+local configurations. It should only be modified in branch
+'master'. To ignore changes locally::
+    git update-index --assume-unchanged db/_locconst.py
+
+To resume tracking::
+    git update-index --no-assume-unchanged db/_locconst.py
 """
 # logging
 LOGFILE = '/var/log/optbot/python.log'

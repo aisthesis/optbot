@@ -125,7 +125,7 @@ def updateeq(db, eq, nysenow):
     _today = dt.datetime(nysenow.year, nysenow.month, nysenow.day, 11)
     if _quotes.find_one({'Underlying': {'$in': [eq.lower(), eq.upper()]}, 'Quote_Time': {'$gte': _today}}) is not None:
         logger.warn("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
-        return
+        return True
     logger.info("Downloading options quotes for '{}'".format(eq))
     try:
         _opts = pn.opt.get(eq)
@@ -137,7 +137,7 @@ def updateeq(db, eq, nysenow):
         logger.info("Inserting quotes for '{}' into '{}'".format(eq, _constants.QUOTES))
         for _entry in _entries:
             _bulk.insert(_entry)
-            logger.info("{} queued for insert into {}.{}".format(_entry, _constants.DB, _constants.QUOTES))
+            logger.debug("{} queued for insert into {}.{}".format(_entry, _constants.DB, _constants.QUOTES))
         try:
             _result = _bulk.execute()
         except BulkWriteError:
