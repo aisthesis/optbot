@@ -21,11 +21,8 @@ QUOTES = 'quotes'
 
 # retry parameters
 RETRYSECS = 10. * 60.
-SECSONSUCC = 16. * 60. * 60.
-SECSINDAY = 24. * 60. * 60.
 
 # service management
 TOPIC = 'optbot'
 KILLSIG = TOPIC + '.kill'
-PORT = 50000
 MSGSIZE = 64
