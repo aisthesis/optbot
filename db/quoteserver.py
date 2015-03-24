@@ -122,9 +122,12 @@ def _secstowait(curr_est, againtoday=False):
 
 def updateeq(db, eq, nysenow):
     _quotes = db[_constants.QUOTES]
-    _today = dt.datetime(nysenow.year, nysenow.month, nysenow.day, 11)
+    # PyMongo mistakenly interprets the value of 'Quote_Time' as UTC rather than EST
+    # So we need to offset by at least 5 hours.
+    # The following checks for any stored value from today regardless of quote time.
+    _today = nysenow.replace(hour=3)
     if _quotes.find_one({'Underlying': {'$in': [eq.lower(), eq.upper()]}, 'Quote_Time': {'$gte': _today}}) is not None:
-        logger.warn("{} quotes for '{}' already inserted.".format(_today.strftime('%Y-%m-%d'), eq)) 
+        logger.warn("{} quotes for '{}' already inserted.".format(nysenow.strftime('%Y-%m-%d'), eq)) 
         return True
     logger.info("Downloading options quotes for '{}'".format(eq))
     try:
