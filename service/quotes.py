@@ -2,10 +2,10 @@
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 
-Get options quotes (:mod:`optbot.db.quoteserver`)
+Get options quotes (:mod:`optbot.db.quotes`)
 =================================================
 
-.. currentmodule:: optbot.db.quoteserver
+.. currentmodule:: optbot.db.quotes
 
 When started in default mode (without '--alwaysrun' option),
 the script::
@@ -31,7 +31,11 @@ below for syntax.
 
 Examples
 --------
-    python quoteserver.py &
+To start service normally::
+    python quotes.py --start &
+
+To stop service::
+    python quotes.py --stop
 """
 import _constants
 import _locconst
@@ -164,7 +168,7 @@ def updateall(nysenow, client):
         _success = updateeq(_db, _eq['equity'], nysenow) and _success
     return _success
 
-def server():
+def startservice():
     _host = ''
     _backlog = 1
     _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -183,12 +187,29 @@ def server():
             _running = False
             _client.send('quote server closing'.encode())
 
+def stopservice():
+    _host = 'localhost'
+    _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    _sock.connect((_host, _locconst.PORT))
+    _sock.send(_constants.KILLSIG.encode())
+    _response = _sock.recv(_constants.MSGSIZE).decode()
+    _sock.close()
+    logger.info(_response)
+    print(_response)
+
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
+    _parser.add_argument("--start", help="start quote service", action="store_true")
+    _parser.add_argument("--stop", help="stop quote service", action="store_true")
     _parser.add_argument("-A", "--alwaysrun", help="insert quotes on weekends and holidays",
             action="store_true")
     _args = _parser.parse_args()
-    run_any_day = _args.alwaysrun
-    if _args.alwaysrun:
-        logger.info("Inserting quotes even on weekends and holidays")
-    server()
+    if _args.stop:
+        stopservice()
+    elif _args.start:
+        run_any_day = _args.alwaysrun
+        if _args.alwaysrun:
+            logger.info("Inserting quotes even on weekends and holidays")
+        startservice()
+    else:
+        _parser.print_help()
