@@ -2,10 +2,10 @@
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 
-Get options quotes (:mod:`optbot.db.quotes`)
+Get options quotes (:mod:`optbot.service.quotes`)
 =================================================
 
-.. currentmodule:: optbot.db.quotes
+.. currentmodule:: optbot.service.quotes
 
 When started in default mode (without '--alwaysrun' option),
 the script::
@@ -37,16 +37,6 @@ To start service normally::
 To stop service::
     python quotes.py --stop
 """
-import _constants
-import _locconst
-
-import logging
-logger = logging.getLogger(_constants.LOGNAME)
-handler = logging.FileHandler(_locconst.LOGFILE)
-formatter = logging.Formatter(_constants.LOGFMT)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
 
 import argparse
 import datetime as dt
@@ -54,13 +44,15 @@ from functools import partial
 from pytz import timezone
 import socket
 import threading
-import traceback
 
 import pandas as pd
 from pandas.tseries.offsets import BDay
 from pymongo.errors import BulkWriteError
 import pynance as pn
 
+import _constants
+import _locconst
+from _logger import logger
 import conn
 
 run_any_day = False

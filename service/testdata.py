@@ -2,22 +2,13 @@
 .. Copyright (c) 2015 Marshall Farrier
    license http://opensource.org/licenses/MIT
 
-Observe equity (:mod:`optbot.service.observe`)
+Observe equity (:mod:`optbot.service.testdata`)
 =========================================
 
-.. currentmodule:: optbot.service.observe
+.. currentmodule:: optbot.service.testdata
 
-Add equities passed from command line to `active` collection in mongodb.
-
-Examples
---------
-To add 'ge' and 'f' to `active` collection:
-    python observe.py --add ge f
-
-To remove 'spwr' from `active` collection:
-    python observe.py --remove spwr
+Generate test data.
 """
-
 import argparse
 from functools import partial
 import sys
@@ -76,12 +67,10 @@ def remove(equities, client):
 
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
-    _parser.add_argument('--add', nargs='+', help='start observing options for given equities')
-    _parser.add_argument('--remove', nargs='+', help='stop observing options for given equities')
-    _argsdict = vars(_parser.parse_args())
-    if _argsdict['add'] is not None:
-        conn.job(partial(insert, _argsdict['add']), logger)
-    if _argsdict['remove'] is not None:
-        conn.job(partial(remove, _argsdict['remove']), logger)
-    if _argsdict['add'] is None and _argsdict['remove'] is None:
-        _parser.print_help()
+    _parser.add_argument('--pull', help='pull data from mongo to generate csv', action='store_true')
+    _args = _parser.parse_args()
+    if _args.pull:
+        print('pulling')
+    else:
+        print('not pulling')
+    logger.info('logs working')
