@@ -18,6 +18,8 @@ DB = 'options'
 # collections
 ACTIVE = 'active'
 QUOTES = 'quotes'
+FIELDNAMES = ('Quote_Time', 'Underlying', 'Expiry', 'Opt_Type', 'Strike', 'Opt_Symbol',\
+        'Last', 'Bid', 'Ask', 'Vol', 'Open_Int',)
 
 # retry parameters
 RETRYSECS = 10. * 60.

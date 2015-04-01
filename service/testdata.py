@@ -10,67 +10,44 @@ Observe equity (:mod:`optbot.service.testdata`)
 Generate test data.
 """
 import argparse
-from functools import partial
+import csv
+import datetime as dt
+import os.path
 import sys
-
-from pymongo.errors import BulkWriteError
 
 import _constants
 from _logger import logger
 import conn
 
-def insert(equities, client):
+def pull(client):
+    # abort if file already exists
+    _fname = 'test.csv'
+    if os.path.isfile(_fname):
+        _msg = "File '{}' already exists. Remove file before writing".format(_fname)
+        print(_msg)
+        logger.warn(_msg)
+        return
+    # get sample values from db
     _db = client[_constants.DB]
-    _active = _db[_constants.ACTIVE]
-    _bulk = _active.initialize_unordered_bulk_op()
-    _values = [{'equity': _eq} for _eq in equities]
-    _alreadydone = True
-    for _val in _values:
-        if _active.find_one(_val) is not None:
-            logger.info("{} already present in {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
-        else:
-            _alreadydone = False
-            _bulk.insert(_val)
-            logger.info("{} queued for insert into {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
-    if not _alreadydone:
-        try:
-            _result = _bulk.execute()
-        except BulkWriteError:
-            logger.exception("Error writing to database")
-        else:
-            logger.info("{} records inserted into {}.{}".format(_result['nInserted'], _constants.DB, _constants.ACTIVE))
-    else:
-        logger.info("all values already present")
-
-def remove(equities, client):
-    _db = client[_constants.DB]
-    _active = _db[_constants.ACTIVE]
-    _bulk = _active.initialize_unordered_bulk_op()
-    _values = [{'equity': _eq} for _eq in equities]
-    _alreadydone = True
-    for _val in _values:
-        if _active.find_one(_val) is None:
-            logger.info("{} not present in {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
-        else:
-            _alreadydone = False
-            _bulk.find(_val).remove()
-            logger.info("{} queued for removal from {}.{}".format(_val, _constants.DB, _constants.ACTIVE))
-    if not _alreadydone:
-        try:
-            _result = _bulk.execute()
-        except BulkWriteError:
-            logger.exception("Error writing to database")
-        else:
-            logger.info("{} records removed from {}.{}".format(_result['nRemoved'], _constants.DB, _constants.ACTIVE))
-    else:
-        logger.info("none of given values found")
+    _coll = _db[_constants.QUOTES]
+    _eq = 'spwr'
+    _type = 'call'
+    _strike = 31
+    _expiry = dt.datetime(2015, 6, 19)
+    _qry = {'Underlying': {'$in': [_eq.lower(), _eq.upper()]}, 'Strike': _strike,\
+            'Opt_Type': _type, 'Expiry': _expiry} 
+    logger.info("Pulling test data")
+    _cursor = _coll.find(_qry)
+    # write to file
+    with open(_fname, 'w') as _csvfile:
+        _writer = csv.DictWriter(_csvfile, fieldnames=_constants.FIELDNAMES) 
+        _writer.writeheader()
+        for _row in _cursor:
+            _writer.writerow({_field: _row[_field] for _field in _constants.FIELDNAMES})
 
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
     _parser.add_argument('--pull', help='pull data from mongo to generate csv', action='store_true')
     _args = _parser.parse_args()
     if _args.pull:
-        print('pulling')
-    else:
-        print('not pulling')
-    logger.info('logs working')
+        conn.job(pull, logger)
