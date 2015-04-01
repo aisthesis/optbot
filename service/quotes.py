@@ -169,9 +169,10 @@ def updateall(nysenow, client):
     return _success
 
 def startservice():
-    _host = ''
+    _host = '127.0.0.1'
     _backlog = 1
     _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    _sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     _sock.bind((_host, _locconst.PORT))
     _sock.listen(_backlog)
     _running = True
@@ -181,11 +182,10 @@ def startservice():
         _client, _address = _sock.accept()
         _msg = _client.recv(_constants.MSGSIZE).decode()
         if _msg == _constants.KILLSIG:
-            _sock.shutdown(socket.SHUT_RDWR)
-            _sock.close()
             _checker.close()
             _running = False
             _client.send('quote server closing'.encode())
+    _client.close()
 
 def stopservice():
     _host = 'localhost'
