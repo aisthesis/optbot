@@ -6,6 +6,17 @@ optbot/service
 --
 Service to download daily options quotes and push to a MongoDB instance.
 
+Before starting the service, you should populate MongoDB with stocks to
+observe. To add stocks to the local observation list:
+
+    $ cd service
+    $ python observe.py --add tsla nflx spwr
+
+Start the service with:
+
+    $ cd service
+    $ python quotes.py --start &
+
 Build
 --
 Install virtualenv, virtualenvwrapper and autoenv as specified [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
