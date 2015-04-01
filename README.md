@@ -17,3 +17,10 @@ Then, from the current directory:
     $ pip install -r requirements.txt
     $ popd
     $ source .env
+
+Notes
+--
+If you need to change local configurations of the service, modify the contents of
+`service/_locconst.py`. Then run:
+
+    $ git update-index --assume-unchanged service/_locconst.py
