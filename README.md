@@ -5,9 +5,9 @@ Tools for evaluating options investments.
 Build
 --
 Install virtualenv, virtualenvwrapper and autoenv as specified [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
-Then, from the current directory:
+Then, from the current directory, and choosing the appropriate path to your `python2.7` interpreter (`which python2.7`):
 
-    $ mkvirtualenv optbot
+    $ mkvirtualenv --python=/usr/local/bin/python2.7 optbot
     $ cp requirements.txt $WORKON_HOME/optbot/
     $ pushd $WORKON_HOME/optbot
     $ pip install -r requirements.txt
