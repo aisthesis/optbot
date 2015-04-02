@@ -54,6 +54,7 @@ import _constants
 import _locconst
 from _logger import logger
 import conn
+import utils
 
 run_any_day = False
 
@@ -128,7 +129,7 @@ def updateeq(db, eq, nysenow):
     logger.info("Downloading options quotes for '{}'".format(eq))
     try:
         _opts = pn.opt.get(eq)
-        _entries = _opts.tolist()
+        _entries = map(partial(utils.fixentry, nysenow), _opts.tolist())
         if len(_entries) == 0:
             logger.info("Empty list returned for '{}'".format(eq))
             return False
