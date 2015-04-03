@@ -7,7 +7,8 @@
 optbot_home="/home/marshallfarrier/Workspace/optbot"
 goodexits=(0)
 cmd='python '$optbot_home'/service/quotes.py --start'
-secs_to_sleep=600
+secs_if_no_mongo=600
+secs_to_retry=120
 
 while [ true ]
 do
@@ -24,7 +25,8 @@ do
                 exit 0
             fi
         done
+        sleep $secs_to_retry
     else
-        sleep $secs_to_sleep
+        sleep $secs_if_no_mongo
     fi
 done
