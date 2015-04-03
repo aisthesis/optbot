@@ -1,4 +1,8 @@
 #!/bin/bash
+# Add this script to the server as crontab:
+# $ crontab -u mongodb -e
+# Then add the line:
+# @reboot <path to optbot repo>/scripts/runmongo.sh
 
 #From http://docs.mongodb.org/manual/reference/exit-codes/
 #130 is ctrl-c
