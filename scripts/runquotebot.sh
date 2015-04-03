@@ -1,13 +1,14 @@
 #!/bin/bash
 # Add this script to the server as crontab:
-# $ sudo crontab -u quotebot -e
+# $ crontab -e
 # Then add the line:
 # @reboot <path to optbot repo>/scripts/runquotebot.sh
 
 optbot_home="/home/marshallfarrier/Workspace/optbot"
 goodexits=(0)
-cmd='python '$optbot_home'/service/quotes.py --start'
-secs_if_no_mongo=600
+env_cmd='source /mnt/disk1/venv/optbot/bin/activate'
+srv_cmd='python '$optbot_home'/service/quotes.py --start'
+secs_if_no_mongo=60
 secs_to_retry=120
 
 while [ true ]
@@ -15,7 +16,8 @@ do
     mongo_pid=`pidof mongod`
     if [ $mongo_pid ]
     then
-        $cmd
+        $env_cmd
+        $srv_cmd
         exitcode=$?
         
         for code in ${goodexits[@]}
