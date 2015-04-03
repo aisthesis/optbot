@@ -1,6 +1,6 @@
 #!/bin/bash
 # Add this script to the server as crontab:
-# $ crontab -u mongodb -e
+# $ sudo crontab -u mongodb -e
 # Then add the line:
 # @reboot <path to optbot repo>/scripts/runmongo.sh
 
