@@ -6,7 +6,7 @@ source /mnt/disk1/venv/optbot/bin/activate
 pushd /home/marshallfarrier/Workspace/optbot/service
 python quotes.py --stop
 popd
-pushd /home/marshallfarrier/Workspace/optbot/mongo
+pushd /home/marshallfarrier/Workspace/optbot/scripts
 ./stopmongo.sh
 popd
 umount -d /dev/sdb
